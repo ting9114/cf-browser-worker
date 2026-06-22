@@ -1,0 +1,13 @@
+services:
+  cf-browser-worker:
+    build: .
+    container_name: cf-browser-worker
+    restart: unless-stopped
+    platform: linux/amd64
+    shm_size: 2gb
+    mem_limit: 6g
+    ports:
+      - ${PORT:-3002}:${PORT:-3002}
+    environment:
+      - PORT=${PORT:-3002}
+      - HEADED=${HEADED:-true}
