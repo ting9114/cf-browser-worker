@@ -2,7 +2,7 @@ import express from 'express';
 import { chromium } from 'playwright';
 import { randomUUID } from 'crypto';
 import { resolveAdPatterns } from './ad-patterns.js';
-import { solveTurnstile, hasTurnstile } from './cf-solver.js';
+import { solveTurnstile, hasTurnstile, bypassCloudflare, detectChallenge } from './cf-solver.js';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -292,6 +292,17 @@ async function executeStep(session, step) {
     case 'detectTurnstile': {
       const detection = await hasTurnstile(page);
       return detection;
+    }
+
+    case 'detectChallenge': {
+      // Classify ANY Cloudflare challenge on the page (iuam/v3/turnstile/managed/firewall/none)
+      return await detectChallenge(page);
+    }
+
+    case 'bypassCloudflare': {
+      // Auto-handle whatever Cloudflare presents: wait out JS challenges,
+      // solve Turnstile via 2captcha if configured, report managed/firewall honestly.
+      return await bypassCloudflare(page, session.captcha, session.proxy, params);
     }
 
     case 'waitForCfClearance': {
