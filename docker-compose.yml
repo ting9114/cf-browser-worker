@@ -4,10 +4,20 @@ services:
     container_name: cf-browser-worker
     restart: unless-stopped
     platform: linux/amd64
-    shm_size: 2gb
+    init: true               # tini reaps the backgrounded Xvfb process
+    shm_size: 2gb            # Chromium crashes with the default 64MB /dev/shm
     mem_limit: 6g
-    ports:
-      - ${PORT:-3002}:${PORT:-3002}
     environment:
       - PORT=${PORT:-3002}
       - HEADED=${HEADED:-true}
+    ports:
+      # Bind to localhost only. Expose to the LAN/internet only if you
+      # add authentication first — this server has none and can spend
+      # your 2captcha balance and drive a browser for anyone who reaches it.
+      - "127.0.0.1:${PORT:-3002}:${PORT:-3002}"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:${PORT:-3002}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
