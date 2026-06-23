@@ -72,7 +72,6 @@ async function createSession(options = {}) {
 
   const launchOptions = {
     headless: process.env.HEADED === 'true' ? false : true,
-    channel: 'chromium',
     args,
   };
 

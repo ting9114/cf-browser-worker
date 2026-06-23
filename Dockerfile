@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Dependencies for Chrome + Xvfb (for headed mode)
+# System dependencies for Chrome + Xvfb
 RUN apt-get update && apt-get install -y \
     wget curl gnupg unzip \
     fonts-liberation libasound2 libatk-bridge2.0-0 libatspi2.0-0 \
@@ -13,23 +13,14 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-# Chrome for Testing
-RUN mkdir -p /opt/chrome \
-    && wget -q https://storage.googleapis.com/chrome-for-testing-public/147.0.7727.50/linux64/chrome-linux64.zip \
-    && unzip chrome-linux64.zip -d /opt/chrome/ \
-    && rm chrome-linux64.zip \
-    && ln -sf /opt/chrome/chrome-linux64/chrome /usr/local/bin/google-chrome \
-    && chmod +x /usr/local/bin/google-chrome
-
 WORKDIR /app
 
 COPY package.json .
 
-# Install dependencies first (Playwright npm package)
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npm install
+# Install npm dependencies (skip browser download during npm install)
+RUN PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install
 
-# Now install Playwright's Chromium browser (after playwright package is available)
+# Now download Playwright's Chromium (env var NOT persisted, so install works)
 RUN npx playwright install --with-deps chromium
 
 COPY src/ ./src/
@@ -38,7 +29,6 @@ RUN chmod +x entrypoint.sh
 
 EXPOSE 3001
 
-# Default: headless. Set HEADED=true for headed mode with Xvfb.
 ENV HEADED=false
 ENV PORT=3001
 
