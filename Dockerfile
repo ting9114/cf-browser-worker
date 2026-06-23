@@ -23,11 +23,14 @@ RUN mkdir -p /opt/chrome \
 
 WORKDIR /app
 
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npx playwright install chromium
-
 COPY package.json .
+
+# Install dependencies first (Playwright npm package)
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN npm install
+
+# Now install Playwright's Chromium browser (after playwright package is available)
+RUN npx playwright install --with-deps chromium
 
 COPY src/ ./src/
 COPY entrypoint.sh .
