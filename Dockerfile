@@ -13,7 +13,8 @@ WORKDIR /app
 # Copy manifest (and lockfile when present) first for better layer caching.
 COPY package.json package-lock.json* ./
 
-# Install npm deps without pulling Playwright's browsers yet.
+# Install npm deps without pulling Playwright's browsers yet. 
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers 
 RUN PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install
 
 # Install Chromium + all required system libraries in one step.
